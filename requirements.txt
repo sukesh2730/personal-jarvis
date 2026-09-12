@@ -1,0 +1,15 @@
+groq
+google-generativeai
+together
+mistralai
+rich
+python-dotenv
+chromadb
+sentence-transformers
+tiktoken
+openai-whisper
+pyaudio
+pyttsx3
+
+# Windows: pip install pipwin then pipwin install pyaudio
+# Or download .whl from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio

@@ -1,0 +1,41 @@
+# ChromaDB vector database
+chroma_db/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+
+# Application logs
+logs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Kiro specs folder
+.kiro/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test_*.py
+*_test.py
+
+# Temporary files
+*.tmp
+*.wav
+*.mp3
