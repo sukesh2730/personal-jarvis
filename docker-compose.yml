@@ -1,0 +1,56 @@
+# Docker Compose for JARVIS
+# Multi-container setup for full JARVIS deployment
+
+version: '3.8'
+
+services:
+  jarvis:
+    build: .
+    container_name: jarvis-main
+    volumes:
+      - ./logs:/app/logs
+      - ./jarvis.db:/app/jarvis.db
+      - ./chroma_db:/app/chroma_db
+      - ./.env:/app/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true
+    command: python main.py
+    networks:
+      - jarvis-network
+
+  dashboard:
+    build: .
+    container_name: jarvis-dashboard
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+      - ./jarvis.db:/app/jarvis.db
+    command: python -c "from dashboard import start_dashboard, create_dashboard_html; create_dashboard_html(); start_dashboard()"
+    networks:
+      - jarvis-network
+    depends_on:
+      - jarvis
+
+  api:
+    build: .
+    container_name: jarvis-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./jarvis.db:/app/jarvis.db
+    command: python -c "from api_server import start_api_server; start_api_server()"
+    networks:
+      - jarvis-network
+    depends_on:
+      - jarvis
+
+networks:
+  jarvis-network:
+    driver: bridge
+
+volumes:
+  jarvis-data:
+    driver: local

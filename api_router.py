@@ -19,7 +19,7 @@ except ImportError:
     Groq = None
 
 try:
-    import google.generativeai as genai
+    from google import genai
 except ImportError:
     genai = None
 
@@ -32,6 +32,67 @@ try:
     from mistralai import Mistral
 except ImportError:
     Mistral = None
+
+
+# Token usage tracking
+_usage_log = []
+
+
+def validate_keys():
+    """
+    Validate API keys on startup.
+    
+    Returns:
+        list: Names of valid/available APIs
+    """
+    valid_apis = []
+    invalid_values = [None, "", "your_groq_key_here", "your_gemini_key_here", 
+                     "your_together_key_here", "your_mistral_key_here"]
+    
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key not in invalid_values and Groq:
+        valid_apis.append("Groq")
+    
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key not in invalid_values and genai:
+        valid_apis.append("Gemini")
+    
+    together_key = os.getenv("TOGETHER_API_KEY")
+    if together_key not in invalid_values and Together:
+        valid_apis.append("Together.ai")
+    
+    mistral_key = os.getenv("MISTRAL_API_KEY")
+    if mistral_key not in invalid_values and Mistral:
+        valid_apis.append("Mistral")
+    
+    return valid_apis
+
+
+def get_stats():
+    """
+    Get usage statistics for current session.
+    
+    Returns:
+        str: Formatted statistics string
+    """
+    if not _usage_log:
+        return "No queries made this session yet."
+    
+    total_calls = len(_usage_log)
+    total_tokens = sum(entry["tokens"] for entry in _usage_log)
+    
+    # Provider breakdown
+    providers = {}
+    for entry in _usage_log:
+        provider = entry["provider"]
+        providers[provider] = providers.get(provider, 0) + 1
+    
+    provider_breakdown = ", ".join([f"{p}: {count}" for p, count in providers.items()])
+    
+    return (f"Session Stats:\n"
+            f"  Total queries: {total_calls}\n"
+            f"  Estimated tokens: ~{int(total_tokens):,}\n"
+            f"  Provider breakdown: {provider_breakdown}")
 
 
 def get_completion(prompt):
@@ -48,6 +109,10 @@ def get_completion(prompt):
         str: The AI's response as a plain string, or an error message if all APIs fail
     """
     
+    # Estimate tokens for tracking
+    estimated_tokens = len(prompt.split()) * 1.3
+    used_provider = None
+    
     # Level 1: Try Groq API
     try:
         print("Using Groq API...")
@@ -59,7 +124,10 @@ def get_completion(prompt):
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=2000
             )
-            return response.choices[0].message.content
+            used_provider = "Groq"
+            result = response.choices[0].message.content
+            _usage_log.append({"provider": used_provider, "tokens": estimated_tokens})
+            return result
         else:
             raise Exception("Groq API key missing or SDK not installed")
     except Exception as e:
@@ -70,13 +138,16 @@ def get_completion(prompt):
         print("Using Gemini API...")
         gemini_key = os.getenv("GEMINI_API_KEY")
         if gemini_key and genai:
-            genai.configure(api_key=gemini_key)
-            model = genai.GenerativeModel("gemini-1.5-flash")
-            response = model.generate_content(
-                prompt,
-                generation_config={"max_output_tokens": 2000}
+            client = genai.Client(api_key=gemini_key)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash-exp",
+                contents=prompt,
+                config={"max_output_tokens": 2000}
             )
-            return response.text
+            used_provider = "Gemini"
+            result = response.text
+            _usage_log.append({"provider": used_provider, "tokens": estimated_tokens})
+            return result
         else:
             raise Exception("Gemini API key missing or SDK not installed")
     except Exception as e:
@@ -93,7 +164,10 @@ def get_completion(prompt):
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=2000
             )
-            return response.choices[0].message.content
+            used_provider = "Together.ai"
+            result = response.choices[0].message.content
+            _usage_log.append({"provider": used_provider, "tokens": estimated_tokens})
+            return result
         else:
             raise Exception("Together.ai API key missing or SDK not installed")
     except Exception as e:
@@ -110,7 +184,10 @@ def get_completion(prompt):
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=2000
             )
-            return response.choices[0].message.content
+            used_provider = "Mistral"
+            result = response.choices[0].message.content
+            _usage_log.append({"provider": used_provider, "tokens": estimated_tokens})
+            return result
         else:
             raise Exception("Mistral API key missing or SDK not installed")
     except Exception as e:

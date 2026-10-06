@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/*.log
+
+# Database (mount as volume instead)
+*.db-journal
+
+# Test files
+test_*.py
+tests/
+
+# Documentation
+*.md
+!README.md
+
+# Kiro specs
+.kiro/
+
+# Environment (mount as volume)
+.env.example

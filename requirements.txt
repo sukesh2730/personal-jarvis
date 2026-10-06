@@ -1,5 +1,5 @@
 groq
-google-generativeai
+google-genai
 together
 mistralai
 rich
@@ -10,6 +10,18 @@ tiktoken
 openai-whisper
 pyaudio
 pyttsx3
+python-dateutil
+GitPython
+pyperclip
+pip-audit
+duckduckgo-search
+pygame
+requests
+Flask
+fastapi
+uvicorn
+psutil
+git+https://github.com/Panniantong/Agent-Reach.git
 
 # Windows: pip install pipwin then pipwin install pyaudio
 # Or download .whl from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
